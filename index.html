@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://code.jquery.com/jquery-3.6.3.min.js"
+            integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <title>FileUploader</title>
+</head>
+<body>
+<input type="file" id="file">
+</body>
+<script>
+    $('#file').on('change', function () {
+        let FileList = this.files;
+
+        uploading(FileList[0], callback);
+    });
+
+    function callback() {
+
+    }
+
+    function uploading(file, callback) {
+        let socket;
+        let env = 'dev';
+        let location = 'v1';
+
+        if (env === 'dev') {
+            socket = io.connect('http://localhost:3000', {
+                cors: {origin: '*'},
+                withCredentials: true,
+                transports: ['websocket']
+            });
+        }
+
+        let fileReader = new FileReader();
+
+        fileReader.onload = function (event) {
+            let data;
+            if (!event) {
+                data = fileReader.content;
+            } else {
+                data = event.target.result;
+            }
+
+            socket.emit('Upload', {'Name': file.name, 'Data': data, 'env': env, 'location': location});
+        }
+
+        socket.emit('Start', {'Name': file.name, 'Size': file.size, 'env': env, 'location': location});
+
+        socket.on('disconnect', function () {
+            console.log('disconnect');
+        });
+
+        socket.on('complete', function (data) {
+            callback(100, data.result, data.duration, data.dimensions, data.rotation, data.resize_path, target);
+            socket.disconnect();
+        });
+
+        socket.on('MoreData', function (data) {
+            callback(data.Percent);
+        });
+    }
+</script>
+</html>
