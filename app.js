@@ -1,3 +1,4 @@
+const fs = require('fs');
 const app = require('express')();
 const server = require('http').createServer(app);
 const io = require('socket.io')(server, {
@@ -13,18 +14,21 @@ const uploader = require('./uploader');
 io.on('connection', (socket) => {
     console.log('connect');
 
-    socket.on('Start', function (data) {
-        console.log('start');
-        uploader.start(socket, data);
+    let fileBuffer = [];
+
+    socket.on('chunk', function (chunk) {
+        fileBuffer.push(chunk);
     });
 
-    socket.on('Upload', function (data) {
-        console.log('upload');
-        uploader.upload(socket, data);
-    });
-
-    socket.on('disconnect', () => {
-        console.log('disconnect');
+    socket.on('disconnect', function () {
+        const buffer = Buffer.concat(fileBuffer);
+        fs.writeFile('received_file.bin', buffer, function (err) {
+            if (err) {
+                console.error(err);
+            } else {
+                console.log('File received and saved.');
+            }
+        });
     });
 });
 
