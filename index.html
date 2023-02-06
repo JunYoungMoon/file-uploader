@@ -8,46 +8,46 @@
     <title>FileUploader</title>
 </head>
 <body>
-<input type="file" id="file">
+<input type="file" id="file"/>
+<br/>
+<progress id="progress" value="0" max="100"></progress>
 </body>
 <script>
-    let socket;
-    let env = 'dev';
-    let location = 'v1';
-    let offset = 0;
-    const chunkSize = 1024 * 1024;
-
-    if (env === 'dev') {
-        socket = io.connect('http://localhost:3000', {
-            cors: {origin: '*'},
-            withCredentials: true,
-            transports: ['websocket']
-        });
-    }
+    const socket = io.connect('http://localhost:3000', {
+        cors: {origin: '*'},
+        withCredentials: true,
+        transports: ['websocket']
+    });
 
     $('#file').on('change', function () {
+        $('#progress').val('');
         const file = this.files[0];
-        const chunkSize = 1024 * 1024;
-        let currentChunk = 0;
+        const chunkSize = 2048;
 
-        function readChunk() {
-            const start = currentChunk * chunkSize;
-            const end = start + chunkSize >= file.size ? file.size : start + chunkSize;
-            const chunk = file.slice(start, end);
-            currentChunk++;
+        socket.emit("upload-start", {size: file.size, name: file.name});
 
-            const reader = new FileReader();
-            reader.onload = function (event) {
-                socket.emit('chunk', event.target.result);
+        let offset = 0;
+        const reader = new FileReader();
 
-                if (end < file.size) {
-                    readChunk();
-                }
-            };
+        reader.onload = async e => {
+            await socket.emit("upload-chunk", { data: new Uint8Array(e.target.result) });
+            offset += chunkSize;
+            if (offset < file.size) {
+                readChunk();
+            } else {
+                await socket.emit("upload-end");
+            }
+        };
+
+        const readChunk = () => {
+            const chunk = file.slice(offset, offset + chunkSize);
             reader.readAsArrayBuffer(chunk);
-        }
-
+        };
         readChunk();
+    });
+
+    socket.on("upload-progress", data => {
+        $('#progress').val(data.progress);
     });
 
 </script>
