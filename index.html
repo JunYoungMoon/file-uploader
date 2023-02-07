@@ -2,6 +2,19 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <style>
+        progress {
+            width: 100%;
+            height: 30px;
+            border: 1px solid #333;
+            border-radius: 5px;
+            background-color: #ddd;
+        }
+        progress::-webkit-progress-value {
+            background-color: #4caf50;
+            border-radius: 5px;
+        }
+    </style>
     <script src="https://code.jquery.com/jquery-3.6.3.min.js"
             integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
     <script src="/socket.io/socket.io.js"></script>
@@ -20,11 +33,12 @@
     });
 
     $('#file').on('change', function () {
-        $('#progress').val('');
         const file = this.files[0];
         const chunkSize = 2048;
+        const uniqueId = Date.now() + Math.random().toString(36).substr(2, 9);
+        const filename = uniqueId + '.' + file.name.slice(file.name.lastIndexOf('.') + 1);
 
-        socket.emit("upload-start", {size: file.size, name: file.name});
+        socket.emit("upload-start", {size: file.size, name: filename});
 
         let offset = 0;
         const reader = new FileReader();
@@ -49,6 +63,5 @@
     socket.on("upload-progress", data => {
         $('#progress').val(data.progress);
     });
-
 </script>
 </html>

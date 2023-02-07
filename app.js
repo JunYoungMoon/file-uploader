@@ -36,6 +36,7 @@ io.on('connection', (socket) => {
         socket.on("upload-end", () => {
             console.log("Upload completed");
             writeStream.end();
+            socket.disconnect();
         });
     });
 });
