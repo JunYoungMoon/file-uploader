@@ -16,9 +16,9 @@ io.on('connection', (socket) => {
         console.log("Upload started");
         console.log("File size: ", data.size);
 
-        fs.mkdirSync(__dirname + "/uploaded_files/", {recursive: true});
+        fs.mkdirSync(__dirname + "/temp/", {recursive: true});
 
-        const writeStream = fs.createWriteStream(__dirname + "/uploaded_files/" + data.name);
+        const writeStream = fs.createWriteStream(__dirname + "/temp/" + data.name);
         let uploaded = 0;
 
         let previousProgress = 0;
@@ -44,6 +44,11 @@ io.on('connection', (socket) => {
 app.get('/', function(req, res) {
     res.sendFile(__dirname + '/index.html');
 });
+
+app.get('/submit', function(req, res) {
+
+});
+
 
 server.listen(3000, function() {
     console.log('Socket IO server listening on port 3000');

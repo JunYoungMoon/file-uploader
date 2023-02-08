@@ -2,19 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <style>
-        progress {
-            width: 100%;
-            height: 30px;
-            border: 1px solid #333;
-            border-radius: 5px;
-            background-color: #ddd;
-        }
-        progress::-webkit-progress-value {
-            background-color: #4caf50;
-            border-radius: 5px;
-        }
-    </style>
     <script src="https://code.jquery.com/jquery-3.6.3.min.js"
             integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
     <script src="/socket.io/socket.io.js"></script>
@@ -24,6 +11,8 @@
 <input type="file" id="file"/>
 <br/>
 <progress id="progress" value="0" max="100"></progress>
+<br/>
+<input type='button' id="submit" value='Submit' disabled/>
 </body>
 <script>
     const socket = io.connect('http://localhost:3000', {
@@ -32,24 +21,29 @@
         transports: ['websocket']
     });
 
-    $('#file').on('change', function () {
+    let filename;
+
+    $('#file').change(function () {
         const file = this.files[0];
         const chunkSize = 2048;
         const uniqueId = Date.now() + Math.random().toString(36).substr(2, 9);
-        const filename = uniqueId + '.' + file.name.slice(file.name.lastIndexOf('.') + 1);
+        filename = uniqueId + '.' + file.name.slice(file.name.lastIndexOf('.') + 1);
 
         socket.emit("upload-start", {size: file.size, name: filename});
+        $('#submit').attr("disabled", true);
+        $('#progress').val(0);
 
         let offset = 0;
         const reader = new FileReader();
 
         reader.onload = async e => {
-            await socket.emit("upload-chunk", { data: new Uint8Array(e.target.result) });
+            await socket.emit("upload-chunk", {data: new Uint8Array(e.target.result)});
             offset += chunkSize;
             if (offset < file.size) {
                 readChunk();
             } else {
                 await socket.emit("upload-end");
+                $('#submit').attr("disabled", false);
             }
         };
 
@@ -58,6 +52,12 @@
             reader.readAsArrayBuffer(chunk);
         };
         readChunk();
+    });
+
+    $('#submit').click(function () {
+        if (!filename) {
+
+        }
     });
 
     socket.on("upload-progress", data => {
