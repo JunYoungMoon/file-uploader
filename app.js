@@ -1,4 +1,5 @@
 const fs = require('fs');
+const _path = require("path");
 const app = require('express')();
 const server = require('http').createServer(app);
 const io = require('socket.io')(server, {
@@ -46,7 +47,43 @@ app.get('/', function(req, res) {
 });
 
 app.get('/submit', function(req, res) {
+    const name = data.Name;
+    const env = data.env || 'dev';
+    const location = config.nfs_path; //data.location || '';
+    const t = data.target || 'prev';
+    const target = (t == 'prev') ? t : _path.join('nft', t);
 
+    const sub_path = config.sub_path;
+
+    let temp_path = _path.join(config.root_path, sub_path);
+    if (location != '') {
+        temp_path = _path.join(temp_path, location);
+    }
+
+    temp_path = _path.join(temp_path, env);
+    temp_path = _path.join(temp_path, 'temp');
+
+    let dsc_path = _path.join(config.root_path, sub_path);
+    if (location != '') {
+        dsc_path = _path.join(dsc_path, location);
+    }
+
+    dsc_path = _path.join(dsc_path, env);
+    dsc_path = _path.join(dsc_path, target);
+    const now_folder = `${timestamp()}`;
+    dsc_path = _path.join(dsc_path, now_folder);
+    fs.mkdirSync(dsc_path, {recursive: true});
+    dsc_path = _path.join(dsc_path, name);
+
+    let result_path = _path.join(location, env);
+    result_path = _path.join(result_path, target);
+    result_path = _path.join(result_path, now_folder);
+    result_path = _path.join(result_path, name);
+
+    let target_path = _path.join('nft', location);
+    target_path = _path.join(target_path, t);
+    target_path = _path.join(target_path, now_folder);
+    target_path = _path.join(target_path, name);
 });
 
 
