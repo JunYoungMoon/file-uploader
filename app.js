@@ -10,6 +10,11 @@ const io = require('socket.io')(server, {
     }
 });
 
+const bodyParser = require('body-parser');
+
+app.use(bodyParser.json());
+
+
 io.on('connection', (socket) => {
     console.log("A user connected");
 
@@ -46,46 +51,20 @@ app.get('/', function(req, res) {
     res.sendFile(__dirname + '/index.html');
 });
 
-app.get('/submit', function(req, res) {
-    const name = data.Name;
-    const env = data.env || 'dev';
-    const location = config.nfs_path; //data.location || '';
-    const t = data.target || 'prev';
-    const target = (t == 'prev') ? t : _path.join('nft', t);
-
-    const sub_path = config.sub_path;
-
-    let temp_path = _path.join(config.root_path, sub_path);
-    if (location != '') {
-        temp_path = _path.join(temp_path, location);
-    }
-
-    temp_path = _path.join(temp_path, env);
-    temp_path = _path.join(temp_path, 'temp');
-
-    let dsc_path = _path.join(config.root_path, sub_path);
-    if (location != '') {
-        dsc_path = _path.join(dsc_path, location);
-    }
-
-    dsc_path = _path.join(dsc_path, env);
-    dsc_path = _path.join(dsc_path, target);
+app.post('/submit', function(req, res) {
     const now_folder = `${timestamp()}`;
-    dsc_path = _path.join(dsc_path, now_folder);
-    fs.mkdirSync(dsc_path, {recursive: true});
-    dsc_path = _path.join(dsc_path, name);
+    const path = _path.join(__dirname + "/files/", now_folder);
+    fs.mkdirSync(path, {recursive: true});
 
-    let result_path = _path.join(location, env);
-    result_path = _path.join(result_path, target);
-    result_path = _path.join(result_path, now_folder);
-    result_path = _path.join(result_path, name);
 
-    let target_path = _path.join('nft', location);
-    target_path = _path.join(target_path, t);
-    target_path = _path.join(target_path, now_folder);
-    target_path = _path.join(target_path, name);
 });
 
+function timestamp() {
+    const pad = n => n < 10 ? `0${n}` : n;
+    const d = new Date();
+
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
 
 server.listen(3000, function() {
     console.log('Socket IO server listening on port 3000');
