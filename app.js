@@ -34,7 +34,7 @@ io.on('connection', (socket) => {
             const progress = (uploaded / data.size) * 100;
             if (Math.floor(progress) - Math.floor(previousProgress) >= 5) {
                 console.log("Upload progress: ", progress);
-                socket.emit("upload-progress", { progress });
+                socket.emit("upload-progress", {progress});
                 previousProgress = progress;
             }
         });
@@ -47,16 +47,26 @@ io.on('connection', (socket) => {
     });
 });
 
-app.get('/', function(req, res) {
+app.get('/', function (req, res) {
     res.sendFile(__dirname + '/index.html');
 });
 
-app.post('/submit', function(req, res) {
+app.post('/submit', function (req, res) {
     const now_folder = `${timestamp()}`;
     const path = _path.join(__dirname + "/files/", now_folder);
     fs.mkdirSync(path, {recursive: true});
 
-
+    fs.rename(__dirname + "/temp/" + req.body.name, path + "/" + req.body.name, (error) => {
+        if (error) {
+            res.status(400).send({
+                message: 'POST request failed.',
+            });
+        } else {
+            res.status(200).send({
+                message: 'POST request succeeded.',
+            });
+        }
+    });
 });
 
 function timestamp() {
@@ -66,6 +76,6 @@ function timestamp() {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
-server.listen(3000, function() {
+server.listen(3000, function () {
     console.log('Socket IO server listening on port 3000');
 });

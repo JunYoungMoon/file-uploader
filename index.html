@@ -15,12 +15,6 @@
 <input type='button' id="submit" value='Submit' disabled/>
 </body>
 <script>
-    const socket = io.connect('http://localhost:3000', {
-        cors: {origin: '*'},
-        withCredentials: true,
-        transports: ['websocket']
-    });
-
     let filename;
 
     $('#file').change(function () {
@@ -28,6 +22,12 @@
         const chunkSize = 2048;
         const uniqueId = Date.now() + Math.random().toString(36).substr(2, 9);
         filename = uniqueId + '.' + file.name.slice(file.name.lastIndexOf('.') + 1);
+
+        const socket = io.connect('http://localhost:3000', {
+            cors: {origin: '*'},
+            withCredentials: true,
+            transports: ['websocket']
+        });
 
         socket.emit("upload-start", {size: file.size, name: filename});
         $('#submit').attr("disabled", true);
@@ -52,12 +52,16 @@
             reader.readAsArrayBuffer(chunk);
         };
         readChunk();
+
+        socket.on("upload-progress", data => {
+            $('#progress').val(data.progress);
+        });
     });
 
     $('#submit').click(function () {
 
         const data = {
-            name : filename
+            name: filename
         }
         fetch('/submit', {
             method: 'POST',
@@ -78,10 +82,6 @@
             .catch(error => {
                 console.error('There was a problem with the fetch operation:', error);
             });
-    });
-
-    socket.on("upload-progress", data => {
-        $('#progress').val(data.progress);
     });
 </script>
 </html>
