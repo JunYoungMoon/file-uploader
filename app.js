@@ -9,6 +9,7 @@ const io = require('socket.io')(server, {
         credentials: true
     }
 });
+const sharp = require('sharp');
 
 const bodyParser = require('body-parser');
 
@@ -40,6 +41,13 @@ io.on('connection', (socket) => {
         });
 
         socket.on("upload-end", () => {
+            sharp(__dirname + "/temp/" + data.name)
+                .resize(300, 300)
+                .toFile(__dirname + "/temp/" + data.name, (error) => {
+                    if (error) {
+                        console.error(error);
+                    }
+                });
             console.log("Upload completed");
             writeStream.end();
             socket.disconnect();
