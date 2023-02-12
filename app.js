@@ -9,7 +9,10 @@ const io = require('socket.io')(server, {
         credentials: true
     }
 });
-const sharp = require('sharp');
+const { execFile } = require('child_process');
+
+// import {execFile} from 'node:child_process';
+// import gifsicle from 'gifsicle';
 
 const bodyParser = require('body-parser');
 
@@ -41,13 +44,24 @@ io.on('connection', (socket) => {
         });
 
         socket.on("upload-end", () => {
-            sharp(__dirname + "/temp/" + data.name)
-                .resize(300, 300)
-                .toFile(__dirname + "/temp/" + data.name, (error) => {
-                    if (error) {
-                        console.error(error);
-                    }
-                });
+            // sharp(__dirname + "/temp/" + data.name)
+            //     .resize(300, 300)
+            //     .toFile(__dirname + "/temp/" + data.name, (error) => {
+            //         if (error) {
+            //             console.error(error);
+            //         }
+            //     });
+
+            execFile('gifsicle', ['-O', 'optimized.gif', __dirname + "/temp/" + data.name], (error, stdout, stderr) => {
+                if (error) {
+                    console.error(`execFile error: ${error}`);
+                    return;
+                }
+
+                console.log(`stdout: ${stdout}`);
+                console.log(`stderr: ${stderr}`);
+            });
+
             console.log("Upload completed");
             writeStream.end();
             socket.disconnect();
