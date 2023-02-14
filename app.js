@@ -44,15 +44,7 @@ io.on('connection', (socket) => {
         });
 
         socket.on("upload-end", () => {
-            // sharp(__dirname + "/temp/" + data.name)
-            //     .resize(300, 300)
-            //     .toFile(__dirname + "/temp/" + data.name, (error) => {
-            //         if (error) {
-            //             console.error(error);
-            //         }
-            //     });
-
-            execFile('gifsicle', ['-O', 'optimized.gif', __dirname + "/temp/" + data.name], (error, stdout, stderr) => {
+            execFile('gifsicle', ['--lossy=80 -O3 --resize 500x500', '-o', __dirname + "/temp/" + data.name, __dirname + "/temp/" + data.name], (error, stdout, stderr) => {
                 if (error) {
                     console.error(`execFile error: ${error}`);
                     return;
