@@ -10,7 +10,7 @@
 <body>
 <input type="file" id="file"/>
 <br/>
-<progress id="progress" value="0" max="100"></progress>
+<div id="progress-container"></div>
 <br/>
 <input type='button' id="submit" value='Submit' disabled/>
 </body>
@@ -31,7 +31,13 @@
 
         socket.emit("upload-start", {size: file.size, name: filename});
         $('#submit').attr("disabled", true);
-        $('#progress').val(0);
+
+        const progressContainer = $('#progress-container');
+        const progressBar = $(`<progress max="100" value="0"></progress>`);
+        const progressBarText = $(`<span>${filename}</span><br/>`);
+
+        progressContainer.append(progressBar);
+        progressContainer.append(progressBarText);
 
         let offset = 0;
         const reader = new FileReader();
@@ -54,7 +60,7 @@
         readChunk();
 
         socket.on("upload-progress", data => {
-            $('#progress').val(data.progress);
+            progressBar.attr('value', data.progress);
         });
     });
 
