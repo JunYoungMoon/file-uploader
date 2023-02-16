@@ -8,7 +8,8 @@
     <title>FileUploader</title>
 </head>
 <body>
-<input type="file" id="file"/>
+<input type="file" id="file" name="files[]" multiple>
+<!--<input type="file" id="file"/>-->
 <br/>
 <div id="progress-container"></div>
 <br/>
@@ -18,50 +19,54 @@
     let filename;
 
     $('#file').change(function () {
-        const file = this.files[0];
-        const chunkSize = 2048;
-        const uniqueId = Date.now() + Math.random().toString(36).substr(2, 9);
-        filename = uniqueId + '.' + file.name.slice(file.name.lastIndexOf('.') + 1);
-
         const socket = io.connect('http://localhost:3000', {
             cors: {origin: '*'},
             withCredentials: true,
             transports: ['websocket']
         });
+        const chunkSize = 2048;
+        const files = this.files;
 
-        socket.emit("upload-start", {size: file.size, name: filename});
         $('#submit').attr("disabled", true);
 
-        const progressContainer = $('#progress-container');
-        const progressBar = $(`<progress max="100" value="0"></progress>`);
-        const progressBarText = $(`<span>${filename}</span><br/>`);
+        for (let i = 0; i < files.length; i++) {
+            let uniqueId = Date.now() + Math.random().toString(36).substr(2, 9);
+            filename = uniqueId + '.' + files[i].name.slice(files[i].name.lastIndexOf('.') + 1);
 
-        progressContainer.append(progressBar);
-        progressContainer.append(progressBarText);
+            socket.emit("upload-start", {size: files[i].size, name: filename});
 
-        let offset = 0;
-        const reader = new FileReader();
+            const progressContainer = $('#progress-container');
+            const progressBar = $(`<progress id="p-${i}" max="100" value="0"></progress>`);
+            const progressBarText = $(`<span>${filename}</span><br/>`);
 
-        reader.onload = async e => {
-            await socket.emit("upload-chunk", {data: new Uint8Array(e.target.result)});
-            offset += chunkSize;
-            if (offset < file.size) {
-                readChunk();
-            } else {
-                await socket.emit("upload-end");
-                $('#submit').attr("disabled", false);
-            }
-        };
+            progressContainer.append(progressBar);
+            progressContainer.append(progressBarText);
 
-        const readChunk = () => {
-            const chunk = file.slice(offset, offset + chunkSize);
-            reader.readAsArrayBuffer(chunk);
-        };
-        readChunk();
+            let offset = 0;
+            const reader = new FileReader();
 
-        socket.on("upload-progress", data => {
-            progressBar.attr('value', data.progress);
-        });
+            reader.onload = async e => {
+                await socket.emit("upload-chunk", {data: new Uint8Array(e.target.result)});
+                offset += chunkSize;
+                if (offset < files[i].size) {
+                    readChunk();
+                } else {
+                    await socket.emit("upload-end");
+                    $('#submit').attr("disabled", false);
+                }
+            };
+
+            const readChunk = () => {
+                const chunk = files[i].slice(offset, offset + chunkSize);
+                reader.readAsArrayBuffer(chunk);
+            };
+            readChunk();
+
+            socket.on("upload-progress", data => {
+                $('#p-'+i).attr('value', data.progress);
+                // progressBar.attr('value', data.progress);
+            });
+        }
     });
 
     $('#submit').click(function () {
