@@ -29,10 +29,10 @@ io.on('connection', (socket) => {
         fs.mkdirSync(__dirname + "/temp/", {recursive: true});
 
         const writeStream = fs.createWriteStream(__dirname + "/temp/" + data.name);
-        let uploaded = 0;
 
-        let previousProgress = 0;
         socket.on("upload-chunk", chunk => {
+            let uploaded = 0;
+            let previousProgress = 0;
             uploaded += chunk.data.length;
             writeStream.write(new Buffer(chunk.data));
             const progress = (uploaded / data.size) * 100;
