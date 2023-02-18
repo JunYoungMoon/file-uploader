@@ -63,6 +63,7 @@
             readChunk();
 
             socket.on("upload-progress", data => {
+                console.log(data.progress);
                 $('#p-'+i).attr('value', data.progress);
                 // progressBar.attr('value', data.progress);
             });

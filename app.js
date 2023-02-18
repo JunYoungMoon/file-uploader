@@ -30,17 +30,18 @@ io.on('connection', (socket) => {
 
         const writeStream = fs.createWriteStream(__dirname + "/temp/" + data.name);
 
+        let uploaded = 0;
+        let previousProgress = 0;
         socket.on("upload-chunk", chunk => {
-            let uploaded = 0;
-            let previousProgress = 0;
             uploaded += chunk.data.length;
             writeStream.write(new Buffer(chunk.data));
             const progress = (uploaded / data.size) * 100;
-            if (Math.floor(progress) - Math.floor(previousProgress) >= 5) {
-                console.log("Upload progress: ", progress);
-                socket.emit("upload-progress", {progress});
-                previousProgress = progress;
-            }
+            socket.emit("upload-progress", {progress});
+            // if (Math.floor(progress) - Math.floor(previousProgress) >= 5) {
+            //     console.log("Upload progress: ", progress);
+            //     socket.emit("upload-progress", {progress});
+            //     previousProgress = progress;
+            // }
         });
 
         socket.on("upload-end", () => {
