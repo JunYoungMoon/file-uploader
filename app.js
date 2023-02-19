@@ -29,19 +29,18 @@ io.on('connection', (socket) => {
         fs.mkdirSync(__dirname + "/temp/", {recursive: true});
 
         const writeStream = fs.createWriteStream(__dirname + "/temp/" + data.name);
-
         let uploaded = 0;
+
         let previousProgress = 0;
         socket.on("upload-chunk", chunk => {
             uploaded += chunk.data.length;
             writeStream.write(new Buffer(chunk.data));
             const progress = (uploaded / data.size) * 100;
-            socket.emit("upload-progress", {progress});
-            // if (Math.floor(progress) - Math.floor(previousProgress) >= 5) {
-            //     console.log("Upload progress: ", progress);
-            //     socket.emit("upload-progress", {progress});
-            //     previousProgress = progress;
-            // }
+            if (Math.floor(progress) - Math.floor(previousProgress) >= 5) {
+                console.log("Upload progress: ", progress);
+                socket.emit("upload-progress", {progress});
+                previousProgress = progress;
+            }
         });
 
         socket.on("upload-end", () => {

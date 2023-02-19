@@ -9,21 +9,15 @@
 </head>
 <body>
 <input type="file" id="file" name="files[]" multiple>
-<!--<input type="file" id="file"/>-->
 <br/>
 <div id="progress-container"></div>
-<br/>
 <input type='button' id="submit" value='Submit' disabled/>
 </body>
 <script>
     let filename;
 
     $('#file').change(function () {
-        const socket = io.connect('http://localhost:3000', {
-            cors: {origin: '*'},
-            withCredentials: true,
-            transports: ['websocket']
-        });
+
         const chunkSize = 2048;
         const files = this.files;
 
@@ -33,13 +27,21 @@
             let uniqueId = Date.now() + Math.random().toString(36).substr(2, 9);
             filename = uniqueId + '.' + files[i].name.slice(files[i].name.lastIndexOf('.') + 1);
 
+            const socket = io.connect('http://localhost:3000', {
+                cors: {origin: '*'},
+                withCredentials: true,
+                transports: ['websocket']
+            });
+
             socket.emit("upload-start", {size: files[i].size, name: filename});
 
             const progressContainer = $('#progress-container');
             const progressBar = $(`<progress id="p-${i}" max="100" value="0"></progress>`);
+            const cancel = $(`<button class="cancel-btn">Cancel</button>`);
             const progressBarText = $(`<span>${filename}</span><br/>`);
 
             progressContainer.append(progressBar);
+            progressContainer.append(cancel);
             progressContainer.append(progressBarText);
 
             let offset = 0;
@@ -52,6 +54,7 @@
                     readChunk();
                 } else {
                     await socket.emit("upload-end");
+                    console.log('upload-end');
                     $('#submit').attr("disabled", false);
                 }
             };
@@ -63,9 +66,7 @@
             readChunk();
 
             socket.on("upload-progress", data => {
-                console.log(data.progress);
-                $('#p-'+i).attr('value', data.progress);
-                // progressBar.attr('value', data.progress);
+                progressBar.attr('value', data.progress);
             });
         }
     });
