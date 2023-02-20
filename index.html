@@ -37,7 +37,7 @@
 
             const progressContainer = $('#progress-container');
             const progressBar = $(`<progress id="p-${i}" max="100" value="0"></progress>`);
-            const cancel = $(`<button class="cancel-btn">Cancel</button>`);
+            const cancel = $(`<button class="c-${i}">Cancel</button>`);
             const progressBarText = $(`<span>${filename}</span><br/>`);
 
             progressContainer.append(progressBar);
@@ -67,6 +67,10 @@
 
             socket.on("upload-progress", data => {
                 progressBar.attr('value', data.progress);
+            });
+
+            $('.c-'+i).on('click',function () {
+                socket.disconnect();
             });
         }
     });
