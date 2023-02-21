@@ -14,6 +14,7 @@
 <input type='button' id="submit" value='Submit' disabled/>
 </body>
 <script>
+    let filelist = [];
     let filename;
 
     $('#file').change(function () {
@@ -26,7 +27,7 @@
         for (let i = 0; i < files.length; i++) {
             let uniqueId = Date.now() + Math.random().toString(36).substr(2, 9);
             filename = uniqueId + '.' + files[i].name.slice(files[i].name.lastIndexOf('.') + 1);
-
+            filelist.push(filename);
             const socket = io.connect('http://localhost:3000', {
                 cors: {origin: '*'},
                 withCredentials: true,
@@ -71,21 +72,22 @@
 
             $('.c-'+i).on('click',function () {
                 socket.disconnect();
+                const indexToRemove = filelist.indexOf(filename);
+                if (indexToRemove > -1) {
+                    filelist.splice(indexToRemove, 1);
+                }
             });
         }
     });
 
     $('#submit').click(function () {
 
-        const data = {
-            name: filename
-        }
         fetch('/submit', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(data)
+            body: JSON.stringify(filelist)
         })
             .then(response => {
                 if (!response.ok) {
