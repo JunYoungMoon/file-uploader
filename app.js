@@ -66,22 +66,28 @@ app.get('/', function (req, res) {
 });
 
 app.post('/submit', function (req, res) {
-    const now_folder = `${timestamp()}`;
-    const path = _path.join(__dirname + "/files/", now_folder);
-    fs.mkdirSync(path, {recursive: true});
-
-    fs.rename(__dirname + "/temp/" + req.body.name, path + "/" + req.body.name, (error) => {
-        if (error) {
-            res.status(400).send({
-                message: 'POST request failed.',
-            });
-        } else {
-            res.status(200).send({
-                message: 'POST request succeeded.',
-            });
-        }
-    });
+    let count = 0;
+    for (const file of req.body) {
+        const oldPath = _path.join(__dirname, 'temp', file);
+        const newPath = _path.join(__dirname, 'files', file);
+        fs.rename(oldPath, newPath, (error) => {
+            if (error) {
+                console.error(error);
+                res.status(400).send({
+                    message: 'POST request failed.',
+                });
+            } else {
+                count++;
+                if (count === req.body.length) {
+                    res.status(200).send({
+                        message: 'POST request succeeded.',
+                    });
+                }
+            }
+        });
+    }
 });
+
 
 function timestamp() {
     const pad = n => n < 10 ? `0${n}` : n;

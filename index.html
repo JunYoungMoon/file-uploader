@@ -16,6 +16,7 @@
 <script>
     let filelist = [];
     let filename;
+    let uploading = false;
 
     $('#file').change(function () {
 
@@ -23,6 +24,12 @@
         const files = this.files;
 
         $('#submit').attr("disabled", true);
+
+        setInterval(function () {
+            if(!uploading){
+                $('#submit').attr("disabled", false);
+            }
+        },1000);
 
         for (let i = 0; i < files.length; i++) {
             let uniqueId = Date.now() + Math.random().toString(36).substr(2, 9);
@@ -56,7 +63,7 @@
                 } else {
                     await socket.emit("upload-end");
                     console.log('upload-end');
-                    $('#submit').attr("disabled", false);
+                    uploading = false;
                 }
             };
 
@@ -67,6 +74,7 @@
             readChunk();
 
             socket.on("upload-progress", data => {
+                uploading = true;
                 progressBar.attr('value', data.progress);
             });
 
