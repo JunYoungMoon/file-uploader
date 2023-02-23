@@ -66,10 +66,14 @@ app.get('/', function (req, res) {
 });
 
 app.post('/submit', function (req, res) {
+    const now_folder = `${timestamp()}`;
+    const path = _path.join(__dirname + "/files/", now_folder);
+    fs.mkdirSync(path, {recursive: true});
+
     let count = 0;
     for (const file of req.body) {
         const oldPath = _path.join(__dirname, 'temp', file);
-        const newPath = _path.join(__dirname, 'files', file);
+        const newPath = _path.join(__dirname, 'files', now_folder ,file);
         fs.rename(oldPath, newPath, (error) => {
             if (error) {
                 console.error(error);

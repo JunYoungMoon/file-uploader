@@ -26,8 +26,11 @@
         $('#submit').attr("disabled", true);
 
         setInterval(function () {
+            console.log(uploading);
             if(!uploading){
                 $('#submit').attr("disabled", false);
+            }else{
+                $('#submit').attr("disabled", true);
             }
         },1000);
 
@@ -61,9 +64,7 @@
                 if (offset < files[i].size) {
                     readChunk();
                 } else {
-                    await socket.emit("upload-end");
-                    console.log('upload-end');
-                    uploading = false;
+
                 }
             };
 
@@ -76,6 +77,12 @@
             socket.on("upload-progress", data => {
                 uploading = true;
                 progressBar.attr('value', data.progress);
+
+                if(data.progress === 100){
+                    socket.emit("upload-end");
+                    console.log('upload-end');
+                    uploading = false;
+                }
             });
 
             $('.c-'+i).on('click',function () {
