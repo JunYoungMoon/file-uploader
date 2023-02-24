@@ -8,7 +8,9 @@
     <title>FileUploader</title>
 </head>
 <body>
-<input type="file" id="file" name="files[]" multiple>
+<div id="dropzone">
+    <p>Drag and drop file here</p>
+</div>
 <br/>
 <div id="progress-container"></div>
 <input type='button' id="submit" value='Submit' disabled/>
@@ -17,11 +19,24 @@
     let filelist = [];
     let filename;
     let uploading = false;
+    let dropzone = $('#dropzone');
 
-    $('#file').change(function () {
+    dropzone.on('dragover', function() {
+        $(this).addClass('dragging');
+        return false;
+    });
+
+    dropzone.on('dragleave', function() {
+        $(this).removeClass('dragging');
+        return false;
+    });
+
+    dropzone.on('drop', function(e) {
+        e.preventDefault();
+        $(this).removeClass('dragging');
 
         const chunkSize = 2048;
-        const files = this.files;
+        const files = e.originalEvent.dataTransfer.files;
 
         $('#submit').attr("disabled", true);
 
