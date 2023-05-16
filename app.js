@@ -44,15 +44,15 @@ io.on('connection', (socket) => {
         });
 
         socket.on("upload-end", () => {
-            execFile('gifsicle', ['--lossy=80 -O3 --resize 500x500', '-o', __dirname + "/temp/" + data.name, __dirname + "/temp/" + data.name], (error, stdout, stderr) => {
-                if (error) {
-                    console.error(`execFile error: ${error}`);
-                    return;
-                }
-
-                console.log(`stdout: ${stdout}`);
-                console.log(`stderr: ${stderr}`);
-            });
+            // execFile('gifsicle', ['--lossy=80 -O3 --resize 500x500', '-o', __dirname + "/temp/" + data.name, __dirname + "/temp/" + data.name], (error, stdout, stderr) => {
+            //     if (error) {
+            //         console.error(`execFile error: ${error}`);
+            //         return;
+            //     }
+            //
+            //     console.log(`stdout: ${stdout}`);
+            //     console.log(`stderr: ${stderr}`);
+            // });
 
             console.log("Upload completed");
             writeStream.end();
