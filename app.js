@@ -10,14 +10,11 @@ const io = require('socket.io')(server, {
     }
 });
 const { execFile } = require('child_process');
-
-// import {execFile} from 'node:child_process';
-// import gifsicle from 'gifsicle';
-
+const gifsiclePath = require.resolve('gifsicle');
+const gifsicleBinPath = _path.join(_path.dirname(gifsiclePath), 'vendor', 'gifsicle');
 const bodyParser = require('body-parser');
 
 app.use(bodyParser.json());
-
 
 io.on('connection', (socket) => {
     console.log("A user connected");
@@ -44,15 +41,15 @@ io.on('connection', (socket) => {
         });
 
         socket.on("upload-end", () => {
-            // execFile('gifsicle', ['--lossy=80 -O3 --resize 500x500', '-o', __dirname + "/temp/" + data.name, __dirname + "/temp/" + data.name], (error, stdout, stderr) => {
-            //     if (error) {
-            //         console.error(`execFile error: ${error}`);
-            //         return;
-            //     }
-            //
-            //     console.log(`stdout: ${stdout}`);
-            //     console.log(`stderr: ${stderr}`);
-            // });
+            execFile(gifsicleBinPath, ['--lossy=200', '-O3', '--resize', '500x500', '-o', __dirname + "/temp/" + data.name, __dirname + "/temp/" + data.name], (error, stdout, stderr) => {
+                if (error) {
+                    console.error(`execFile error: ${error}`);
+                    return;
+                }
+
+                console.log(`stdout: ${stdout}`);
+                console.log(`stderr: ${stderr}`);
+            });
 
             console.log("Upload completed");
             writeStream.end();
